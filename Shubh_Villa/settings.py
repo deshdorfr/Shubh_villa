@@ -26,7 +26,7 @@ SECRET_KEY = 'b33+c&fv0-64_c3(mnq9=p&5k)l)4!2kr*t6e1+2#m#(p*w9y='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["shubhvilla.pythonanywhere.com"]
+ALLOWED_HOSTS = ["shubhvilla.pythonanywhere.com", "*"]
 
 
 # Application definition
@@ -63,7 +63,6 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "shubhvilla.pythonanywhere.com",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -102,6 +101,7 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 WSGI_APPLICATION = 'Shubh_Villa.wsgi.application'
 
