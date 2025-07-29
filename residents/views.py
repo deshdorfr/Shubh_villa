@@ -11,6 +11,11 @@ from .serializers import ResidentProfileSerializer, RegisterSerializer, UpdateUs
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+from rest_framework.decorators import api_view
+from django.db.models import Sum
+from django.utils import timezone
+from .models import MaintenancePayment
+
 
 class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
@@ -84,4 +89,3 @@ class ChangePermissionView(generics.UpdateAPIView):
     serializer_class = ChangePermissionSerializer
     permission_classes = [permissions.IsAdminUser]
     lookup_field = 'id'
-
