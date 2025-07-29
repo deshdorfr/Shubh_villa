@@ -29,7 +29,8 @@ class Command(BaseCommand):
                     if not MaintenancePayment.objects.filter(resident=resident, month=month_name).exists():
                         MaintenancePayment.objects.create(
                             resident=resident,
-                            amount=envVar.base_maintenance,  # Set default amount here
+                            due=envVar.base_maintenance,
+                            amount=0,  # Set default amount here
                             month=month_name,
                             status='pending'
                         )

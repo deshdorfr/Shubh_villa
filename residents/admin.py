@@ -19,3 +19,4 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
     list_display = ('resident', 'month', 'amount', 'due', 'payment_date', 'status')
     list_filter = ('status', 'month')
     search_fields = ('resident__user__username', 'resident__villa_number')
+    readonly_fields = ['due']
