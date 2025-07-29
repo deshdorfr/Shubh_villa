@@ -5,7 +5,9 @@ from .views import (LoginView,
                     UpdateUserView,
                     DeleteUserView, 
                     ChangePermissionView,
-                    CurrentUserView
+                    CurrentUserView,
+                    ResidentProfileListAPIView,
+                    MaintenancePaymentListView
                     )
 
 urlpatterns = [
@@ -16,4 +18,6 @@ urlpatterns = [
     path('update/', UpdateUserView.as_view(), name='update-user'),
     path('delete/', DeleteUserView.as_view(), name='delete-user'),
     path('permissions/<int:id>/', ChangePermissionView.as_view(), name='change-permissions'),
+    path('residents/', ResidentProfileListAPIView.as_view(), name='resident-list'),
+    path('maintenance-payments/', MaintenancePaymentListView.as_view(), name='maintenance-payment-list'),
 ]

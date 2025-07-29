@@ -16,6 +16,10 @@ from django.db.models import Sum
 from django.utils import timezone
 from .models import MaintenancePayment
 
+from .serializers import MaintenancePaymentSerializer
+from .filters import MaintenancePaymentFilter
+from django_filters.rest_framework import DjangoFilterBackend
+
 
 class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
@@ -89,3 +93,14 @@ class ChangePermissionView(generics.UpdateAPIView):
     serializer_class = ChangePermissionSerializer
     permission_classes = [permissions.IsAdminUser]
     lookup_field = 'id'
+    
+    
+class ResidentProfileListAPIView(generics.ListAPIView):
+    queryset = ResidentProfile.objects.all()
+    serializer_class = ResidentProfileSerializer  
+    
+class MaintenancePaymentListView(generics.ListAPIView):
+    queryset = MaintenancePayment.objects.all().select_related('resident__user')
+    serializer_class = MaintenancePaymentSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = MaintenancePaymentFilter

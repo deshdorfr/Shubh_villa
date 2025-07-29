@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import ResidentProfile
+from .models import MaintenancePayment
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -13,12 +14,12 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'email', 'first_name', 'last_name']
 
-class ResidentProfileSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+# class ResidentProfileSerializer(serializers.ModelSerializer):
+#     user = UserSerializer()
 
-    class Meta:
-        model = ResidentProfile
-        fields = ['user', 'villa_number', 'phone']
+#     class Meta:
+#         model = ResidentProfile
+#         fields = ['user', 'villa_number', 'phone']
         
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -62,3 +63,23 @@ class ChangePermissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['is_staff', 'is_superuser']
+        
+        
+class ResidentProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    name = serializers.CharField(source='user.get_full_name', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+
+    class Meta:
+        model = ResidentProfile
+        fields = ['id', 'username', 'name', 'email', 'villa_number', 'phone', 'registration_date']
+        
+        
+# serializers.py
+class MaintenancePaymentSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='resident.user.username', read_only=True)
+
+    class Meta:
+        model = MaintenancePayment
+        fields = ['id', 'username', 'amount', 'due', 'payment_date', 'month', 'year', 'status', 'payment_method']
+
