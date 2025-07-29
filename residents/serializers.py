@@ -74,12 +74,13 @@ class ResidentProfileSerializer(serializers.ModelSerializer):
         model = ResidentProfile
         fields = ['id', 'username', 'name', 'email', 'villa_number', 'phone', 'registration_date']
         
-        
+
 # serializers.py
 class MaintenancePaymentSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='resident.user.username', read_only=True)
+    villa_number = serializers.CharField(source='resident.villa_number', read_only=True)
 
     class Meta:
         model = MaintenancePayment
-        fields = ['id', 'username', 'amount', 'due', 'payment_date', 'month', 'year', 'status', 'payment_method']
+        fields = ['id', 'username', 'villa_number', 'amount', 'due', 'payment_date', 'month', 'year', 'status', 'payment_method']
 
