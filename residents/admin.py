@@ -16,6 +16,6 @@ class ResidentProfileAdmin(admin.ModelAdmin):
 
 @admin.register(MaintenancePayment)
 class MaintenancePaymentAdmin(admin.ModelAdmin):
-    list_display = ('resident', 'month', 'amount', 'payment_date', 'status')
+    list_display = ('resident', 'month', 'amount', 'due', 'payment_date', 'status')
     list_filter = ('status', 'month')
     search_fields = ('resident__user__username', 'resident__villa_number')

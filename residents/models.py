@@ -4,6 +4,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.utils import timezone
+from decimal import Decimal
+from maintenance import envVar
 
 
 class ResidentProfile(models.Model):
@@ -18,21 +20,23 @@ class ResidentProfile(models.Model):
 
 class MaintenancePayment(models.Model):
     MONTH_CHOICES = [
-            ('January', 'January'),
-            ('February', 'February'),
-            ('March', 'March'),
-            ('April', 'April'),
-            ('May', 'May'),
-            ('June', 'June'),
-            ('July', 'July'),
-            ('August', 'August'),
-            ('September', 'September'),
-            ('October', 'October'),
-            ('November', 'November'),
-            ('December', 'December'),
-        ]
+        ('January', 'January'),
+        ('February', 'February'),
+        ('March', 'March'),
+        ('April', 'April'),
+        ('May', 'May'),
+        ('June', 'June'),
+        ('July', 'July'),
+        ('August', 'August'),
+        ('September', 'September'),
+        ('October', 'October'),
+        ('November', 'November'),
+        ('December', 'December'),
+    ]
+
     resident = models.ForeignKey('ResidentProfile', on_delete=models.CASCADE, related_name='payments')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    due = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     payment_date = models.DateField(default=timezone.now)
     month = models.CharField(max_length=20, choices=MONTH_CHOICES)
     status = models.CharField(max_length=20, choices=[
@@ -40,7 +44,12 @@ class MaintenancePayment(models.Model):
         ('pending', 'Pending'),
         ('failed', 'Failed')
     ], default='pending')
-    payment_method = models.CharField(max_length=50, blank=True, null=True)  # e.g., "UPI", "Credit Card"
+    payment_method = models.CharField(max_length=50, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        # Automatically calculate the due amount before saving
+        self.due = Decimal(envVar.base_maintenance) - self.amount
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.resident.user.username} - {self.month} - ₹{self.amount} - {self.status}"
+        return f"{self.resident.user.username} - {self.month} - ₹{self.amount} - Due ₹{self.due} - {self.status}"

@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from residents.models import ResidentProfile, MaintenancePayment
 import calendar
+from maintenance import envVar
 
 class Command(BaseCommand):
     help = 'Generate missing maintenance payments for residents'
@@ -28,7 +29,7 @@ class Command(BaseCommand):
                     if not MaintenancePayment.objects.filter(resident=resident, month=month_name).exists():
                         MaintenancePayment.objects.create(
                             resident=resident,
-                            amount=1000.00,  # Set default amount here
+                            amount=envVar.base_maintenance,  # Set default amount here
                             month=month_name,
                             status='pending'
                         )
