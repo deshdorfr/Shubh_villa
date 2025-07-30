@@ -14,11 +14,12 @@ from drf_yasg import openapi
 from rest_framework.decorators import api_view
 from django.db.models import Sum
 from django.utils import timezone
-from .models import MaintenancePayment
+from .models import MaintenancePayment, LedgerEntry
 
-from .serializers import MaintenancePaymentSerializer
+from .serializers import MaintenancePaymentSerializer, LedgerEntrySerializer
 from .filters import MaintenancePaymentFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from django.utils.text import capfirst
 
 
 class CurrentUserView(APIView):
@@ -104,3 +105,45 @@ class MaintenancePaymentListView(generics.ListAPIView):
     serializer_class = MaintenancePaymentSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = MaintenancePaymentFilter
+    
+
+
+class LedgerEntryListView(generics.ListAPIView):
+    """
+    GET /api/ledger-entries/?entry_type=credit|debit&month=July|7&year=2025
+    All filters are optional; combine as needed.
+    """
+    serializer_class = LedgerEntrySerializer
+
+    def get_queryset(self):
+        qs = LedgerEntry.objects.select_related("resident__user").all()
+
+        entry_type = self.request.query_params.get("entry_type")
+        month = self.request.query_params.get("month")
+        year = self.request.query_params.get("year")
+
+        # Filter by entry_type (only allow 'credit' or 'debit')
+        if entry_type and entry_type.lower() in {"credit", "debit"}:
+            qs = qs.filter(entry_type=entry_type.lower())
+
+        # Filter by year
+        if year and year.isdigit():
+            qs = qs.filter(year=int(year))
+
+        # Filter by month: accept name (case-insensitive) or numeric 1-12
+        if month:
+            month_val = month.strip()
+            if month_val.isdigit():  # numeric month
+                num = int(month_val)
+                if 1 <= num <= 12:
+                    # Map to full month name stored in choices
+                    MONTHS = [
+                        "January", "February", "March", "April", "May", "June",
+                        "July", "August", "September", "October", "November", "December"
+                    ]
+                    qs = qs.filter(month=MONTHS[num - 1])
+            else:
+                # Accept case-insensitive month name
+                qs = qs.filter(month__iexact=capfirst(month_val))
+
+        return qs

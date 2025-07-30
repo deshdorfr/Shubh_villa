@@ -1,12 +1,12 @@
 {
   "files": {
-    "main.js": "/static/js/main.52f73b09.js",
+    "main.js": "/static/js/main.d8a17b26.js",
     "static/media/bg-sign-in-basic.jpeg": "/static/media/bg-sign-in-basic.f327db1d0e4b00ba3c81.jpeg",
     "static/media/bg-sign-up-cover.jpeg": "/static/media/bg-sign-up-cover.30c5950b22e74f0d82ba.jpeg",
     "index.html": "/index.html",
-    "main.52f73b09.js.map": "/static/js/main.52f73b09.js.map"
+    "main.d8a17b26.js.map": "/static/js/main.d8a17b26.js.map"
   },
   "entrypoints": [
-    "static/js/main.52f73b09.js"
+    "static/js/main.d8a17b26.js"
   ]
 }

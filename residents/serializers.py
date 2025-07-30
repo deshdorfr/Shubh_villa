@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import ResidentProfile
-from .models import MaintenancePayment
+from .models import MaintenancePayment, LedgerEntry
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -83,4 +83,29 @@ class MaintenancePaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = MaintenancePayment
         fields = ['id', 'username', 'villa_number', 'amount', 'due', 'payment_date', 'month', 'year', 'status', 'payment_method']
+        
+
+
+class LedgerEntrySerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source="resident.user.username", read_only=True)
+    villa_number = serializers.CharField(source="resident.villa_number", read_only=True)
+
+    class Meta:
+        model = LedgerEntry
+        fields = [
+            "id",
+            "entry_type",
+            "amount",
+            "month",
+            "year",
+            "category",
+            "payment_method",
+            "note",
+            "date",
+            "created_at",
+            "updated_at",
+            "username",
+            "villa_number",
+        ]
+
 

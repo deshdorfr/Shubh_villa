@@ -7,7 +7,8 @@ from .views import (LoginView,
                     ChangePermissionView,
                     CurrentUserView,
                     ResidentProfileListAPIView,
-                    MaintenancePaymentListView
+                    MaintenancePaymentListView,
+                    LedgerEntryListView
                     )
 
 urlpatterns = [
@@ -20,4 +21,5 @@ urlpatterns = [
     path('permissions/<int:id>/', ChangePermissionView.as_view(), name='change-permissions'),
     path('residents/', ResidentProfileListAPIView.as_view(), name='resident-list'),
     path('maintenance-payments/', MaintenancePaymentListView.as_view(), name='maintenance-payment-list'),
+    path("ledger-entries/", LedgerEntryListView.as_view(), name="ledger-entry-list"),
 ]
