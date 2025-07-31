@@ -66,23 +66,55 @@ class ChangePermissionSerializer(serializers.ModelSerializer):
         
         
 class ResidentProfileSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='user.username', read_only=True)
+    username = serializers.SerializerMethodField()
     name = serializers.CharField(source='user.get_full_name', read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
 
     class Meta:
         model = ResidentProfile
         fields = ['id', 'username', 'name', 'email', 'villa_number', 'phone', 'registration_date']
+
+    def get_username(self, obj):
+        user = getattr(obj, 'user', None)  # Use obj.user directly, not obj.resident.user
+        if user:
+            first = user.first_name or ''
+            last = user.last_name or ''
+            full_name = f"{first} {last}".strip()
+            if full_name:
+                return full_name
+            return user.username
+        return 'N/A'
         
 
-# serializers.py
 class MaintenancePaymentSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='resident.user.username', read_only=True)
+    username = serializers.SerializerMethodField()
     villa_number = serializers.CharField(source='resident.villa_number', read_only=True)
 
     class Meta:
         model = MaintenancePayment
-        fields = ['id', 'username', 'villa_number', 'amount', 'due', 'payment_date', 'month', 'year', 'status', 'payment_method']
+        fields = [
+            'id',
+            'username',
+            'villa_number',
+            'amount',
+            'due',
+            'payment_date',
+            'month',
+            'year',
+            'status',
+            'payment_method'
+        ]
+
+    def get_username(self, obj):
+        user = getattr(obj.resident, 'user', None)
+        if user:
+            first = user.first_name or ''
+            last = user.last_name or ''
+            full_name = f"{first} {last}".strip()
+            if full_name:
+                return full_name
+            return user.username
+        return 'N/A'
         
 
 
