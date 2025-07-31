@@ -101,7 +101,7 @@ class ResidentProfileListAPIView(generics.ListAPIView):
     serializer_class = ResidentProfileSerializer  
     
 class MaintenancePaymentListView(generics.ListAPIView):
-    queryset = MaintenancePayment.objects.all().select_related('resident__user')
+    queryset = MaintenancePayment.objects.all().order_by("-due").select_related('resident__user')
     serializer_class = MaintenancePaymentSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = MaintenancePaymentFilter
