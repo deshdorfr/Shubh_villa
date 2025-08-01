@@ -5,6 +5,7 @@ from django.contrib import admin
 from django import forms
 from datetime import date
 from django.db import models
+from django.db.models import Sum
 
 admin.site.site_header = "Shubh Villa Society Administration"
 admin.site.site_title = "Shubh Villa Admin Portal"
@@ -53,10 +54,57 @@ class LedgerEntryAdminForm(forms.ModelForm):
         current = date.today().year
         self.fields["year"].choices = [(y, y) for y in range(current - 5, current + 6)]
 
+@admin.register(LedgerEntry)
 class LedgerEntryAdmin(admin.ModelAdmin):
     form = LedgerEntryAdminForm
-    list_display = ("note", "entry_type", "amount", "resident", "category", "payment_method", "month", "year", "date")
-    list_filter = ("entry_type", "category", "payment_method", "month", "year", "date")
-    search_fields = ("resident__user__username", "resident__villa_number", "note")
+    change_list_template = "admin/ledgerentry_changelist.html"  # Custom template
 
-admin.site.register(LedgerEntry, LedgerEntryAdmin)
+    list_display = (
+        "note",
+        "entry_type",
+        "amount",
+        "resident",
+        "category",
+        "payment_method",
+        "month",
+        "year",
+        "date",
+    )
+    list_filter = (
+        "entry_type",
+        "category",
+        "payment_method",
+        "month",
+        "year",
+        "date",
+    )
+    search_fields = (
+        "resident__user__username",
+        "resident__villa_number",
+        "note",
+    )
+
+    def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(
+            request,
+            extra_context=extra_context,
+        )
+
+        try:
+            queryset = response.context_data["cl"].queryset
+            totals = queryset.values("entry_type").annotate(total=Sum("amount"))
+            summary = {
+                "total_credit": 0,
+                "total_debit": 0,
+            }
+            for t in totals:
+                if t["entry_type"] == "credit":
+                    summary["total_credit"] = t["total"]
+                elif t["entry_type"] == "debit":
+                    summary["total_debit"] = t["total"]
+
+            response.context_data["summary"] = summary
+        except (AttributeError, KeyError):
+            pass
+
+        return response

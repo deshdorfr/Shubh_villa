@@ -4,8 +4,8 @@
   {{ block.super }}
   {% if summary %}
     <div style="margin-top: 10px; font-size: 16px;">
-        <strong>Total Amount:</strong><span style="color: green;"> ₹{{ summary.total_amount|floatformat:2 }}</span>   |
-        <strong>Total Due:</strong> <span style="color: red;"> ₹{{ summary.total_due|floatformat:2 }}</span>
+      <strong>Total Credit:</strong><span style="color: green;">  ₹{{ summary.total_credit|floatformat:2 }} </span>|
+      <strong>Total Debit:</strong> <span style="color: red;"> ₹{{ summary.total_debit|floatformat:2 }} </span>
     </div>
   {% else %}
     <div style="margin-top: 10px; color: red;">Summary not available.</div>
