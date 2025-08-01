@@ -1,0 +1,9 @@
+{% extends "admin/change_list.html" %}
+
+{% block content_title %}
+  <h2 class="custom-summary">
+    <strong>Total Amount:</strong> ₹{{ summary.total_amount|floatformat:2 }}<br>
+    <strong>Total Due:</strong> ₹{{ summary.total_due|floatformat:2 }}
+  </h2>
+  {{ block.super }}
+{% endblock %}

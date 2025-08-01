@@ -4,6 +4,7 @@ from .models import MaintenancePayment
 from django.contrib import admin
 from django import forms
 from datetime import date
+from django.db import models
 
 admin.site.site_header = "Shubh Villa Society Administration"
 admin.site.site_title = "Shubh Villa Admin Portal"
@@ -22,6 +23,28 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
     list_filter = ('status', 'month')
     search_fields = ('resident__user__username', 'resident__villa_number')
     readonly_fields = ['due', 'year']
+    sortable_by= ['due']
+
+    change_list_template = "admin/maintenancepayment_changelist.html"
+
+    def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(request, extra_context=extra_context)
+
+        try:
+            qs = response.context_data['cl'].queryset
+            total_amount = qs.aggregate(total=models.Sum('amount'))['total'] or 0
+            total_due = qs.aggregate(total=models.Sum('due'))['total'] or 0
+
+            extra_context = extra_context or {}
+            extra_context['summary'] = {
+                'total_amount': total_amount,
+                'total_due': total_due,
+            }
+            response.context_data.update(extra_context)
+        except (AttributeError, KeyError):
+            pass
+
+        return response
     
     
 class LedgerEntryAdminForm(forms.ModelForm):
