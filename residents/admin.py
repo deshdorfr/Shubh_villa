@@ -92,7 +92,7 @@ class LedgerEntryAdmin(admin.ModelAdmin):
 
         try:
             queryset = response.context_data["cl"].queryset
-            totals = queryset.values("entry_type").annotate(total=Sum("amount"))
+            totals = queryset.values("entry_type").annotate(total=Sum("amount")).order_by("entry_type")
             summary = {
                 "total_credit": 0,
                 "total_debit": 0,
