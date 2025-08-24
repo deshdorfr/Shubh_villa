@@ -1,3 +1,4 @@
+import datetime
 from django.contrib.auth.models import User
 from residents.models import ResidentProfile, LedgerEntry
 from .models import MaintenancePayment
@@ -21,14 +22,26 @@ class ResidentProfileAdmin(admin.ModelAdmin):
 @admin.register(MaintenancePayment)
 class MaintenancePaymentAdmin(admin.ModelAdmin):
     list_display = ('resident', 'month', 'year', 'amount', 'due', 'payment_date', 'status')
-    list_filter = ('status', 'month')
+    list_filter = ('status', 'month', 'year')
     search_fields = ('resident__user__username', 'resident__villa_number')
     readonly_fields = ['due', 'year']
-    sortable_by= ['due']
+    sortable_by = ['due']
 
     change_list_template = "admin/maintenancepayment_changelist.html"
 
+    # ✅ Apply default filter (current year & month)
     def changelist_view(self, request, extra_context=None):
+        today = datetime.date.today()
+        current_year = today.year
+        current_month = today.strftime("%B")  # e.g. "August"
+
+        if not request.GET.get("year") and not request.GET.get("month"):
+            q = request.GET.copy()
+            q["year"] = str(current_year)
+            q["month"] = current_month
+            request.GET = q
+            request.META['QUERY_STRING'] = q.urlencode()
+
         response = super().changelist_view(request, extra_context=extra_context)
 
         try:
@@ -85,6 +98,21 @@ class LedgerEntryAdmin(admin.ModelAdmin):
     )
 
     def changelist_view(self, request, extra_context=None):
+        today = datetime.date.today()
+        current_year = today.year
+        current_month = today.strftime("%B")  # 👈 if stored as string ("August")
+
+        # 👉 If stored as integer (1-12), replace above line with:
+        # current_month = today.month
+
+        # ✅ Auto-apply default filters if user hasn't chosen yet
+        if not request.GET.get("year") and not request.GET.get("month"):
+            q = request.GET.copy()
+            q["year"] = str(current_year)
+            q["month"] = current_month
+            request.GET = q
+            request.META["QUERY_STRING"] = q.urlencode()
+
         response = super().changelist_view(
             request,
             extra_context=extra_context,
