@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import ResidentProfile
 from .models import MaintenancePayment, LedgerEntry
+from django.db import models
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -89,6 +90,7 @@ class ResidentProfileSerializer(serializers.ModelSerializer):
 class MaintenancePaymentSerializer(serializers.ModelSerializer):
     username = serializers.SerializerMethodField()
     villa_number = serializers.CharField(source='resident.villa_number', read_only=True)
+    total_due = serializers.SerializerMethodField()
 
     class Meta:
         model = MaintenancePayment
@@ -102,7 +104,8 @@ class MaintenancePaymentSerializer(serializers.ModelSerializer):
             'month',
             'year',
             'status',
-            'payment_method'
+            'payment_method',
+            'total_due',
         ]
 
     def get_username(self, obj):
@@ -115,6 +118,16 @@ class MaintenancePaymentSerializer(serializers.ModelSerializer):
                 return full_name
             return user.username
         return 'N/A'
+
+    def get_total_due(self, obj):
+        """
+        Returns the total due for all MaintenancePayments of the same resident.
+        """
+        return (
+            MaintenancePayment.objects.filter(resident=obj.resident)
+            .aggregate(total_due=models.Sum('due'))['total_due']
+            or 0
+        )
         
 
 

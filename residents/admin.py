@@ -29,16 +29,25 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
 
     change_list_template = "admin/maintenancepayment_changelist.html"
 
-    # ✅ Apply default filter (current year & month)
     def changelist_view(self, request, extra_context=None):
         today = datetime.date.today()
         current_year = today.year
         current_month = today.strftime("%B")  # e.g. "August"
 
-        if not request.GET.get("year") and not request.GET.get("month"):
-            q = request.GET.copy()
-            q["year"] = str(current_year)
-            q["month"] = current_month
+        # make a mutable copy of GET
+        q = request.GET.copy()
+        changed = False
+
+        # Django admin filters use `field__exact`
+        if "year__exact" not in q:
+            q["year__exact"] = str(current_year)
+            changed = True
+
+        if "month__exact" not in q:
+            q["month__exact"] = current_month
+            changed = True
+
+        if changed:
             request.GET = q
             request.META['QUERY_STRING'] = q.urlencode()
 
@@ -70,7 +79,7 @@ class LedgerEntryAdminForm(forms.ModelForm):
 @admin.register(LedgerEntry)
 class LedgerEntryAdmin(admin.ModelAdmin):
     form = LedgerEntryAdminForm
-    change_list_template = "admin/ledgerentry_changelist.html"  # Custom template
+    change_list_template = "admin/ledgerentry_changelist.html"
 
     list_display = (
         "note",
@@ -100,23 +109,26 @@ class LedgerEntryAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         today = datetime.date.today()
         current_year = today.year
-        current_month = today.strftime("%B")  # 👈 if stored as string ("August")
+        current_month = today.strftime("%B")  # if month is stored as string ("August")
+        # 👉 If stored as integer (1–12) instead, use:  current_month = today.month
 
-        # 👉 If stored as integer (1-12), replace above line with:
-        # current_month = today.month
+        # ✅ Inject defaults only if user hasn’t chosen them
+        q = request.GET.copy()
+        changed = False
 
-        # ✅ Auto-apply default filters if user hasn't chosen yet
-        if not request.GET.get("year") and not request.GET.get("month"):
-            q = request.GET.copy()
-            q["year"] = str(current_year)
-            q["month"] = current_month
+        if "year__exact" not in q:
+            q["year__exact"] = str(current_year)
+            changed = True
+
+        if "month__exact" not in q:
+            q["month__exact"] = current_month
+            changed = True
+
+        if changed:
             request.GET = q
             request.META["QUERY_STRING"] = q.urlencode()
 
-        response = super().changelist_view(
-            request,
-            extra_context=extra_context,
-        )
+        response = super().changelist_view(request, extra_context=extra_context)
 
         try:
             queryset = response.context_data["cl"].queryset
