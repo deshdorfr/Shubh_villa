@@ -7,6 +7,15 @@ from django import forms
 from datetime import date
 from django.db import models
 from django.db.models import Sum
+from decimal import Decimal
+from django.db import models
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+from reportlab.platypus import Table, TableStyle
+from maintenance import envVar
+
 
 admin.site.site_header = "Shubh Villa Society Administration"
 admin.site.site_title = "Shubh Villa Admin Portal"
@@ -26,30 +35,22 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
     search_fields = ('resident__user__username', 'resident__villa_number')
     readonly_fields = ['due', 'year']
     sortable_by = ['due']
+    actions = ['export_as_pdf']  # <-- ✅ added action
 
     change_list_template = "admin/maintenancepayment_changelist.html"
 
     def changelist_view(self, request, extra_context=None):
         today = datetime.date.today()
         current_year = today.year
-        current_month = today.strftime("%B")  # e.g. "August"
+        current_month = today.strftime("%B")  # "August", matches MONTH_CHOICES
 
-        # make a mutable copy of GET
-        q = request.GET.copy()
-        changed = False
-
-        # Django admin filters use `field__exact`
-        if "year__exact" not in q:
+        # Apply default only if no filters at all
+        if not request.GET:  
+            q = request.GET.copy()
             q["year__exact"] = str(current_year)
-            changed = True
-
-        if "month__exact" not in q:
             q["month__exact"] = current_month
-            changed = True
-
-        if changed:
             request.GET = q
-            request.META['QUERY_STRING'] = q.urlencode()
+            request.META["QUERY_STRING"] = q.urlencode()
 
         response = super().changelist_view(request, extra_context=extra_context)
 
@@ -68,6 +69,89 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
             pass
 
         return response
+
+    # ✅ Custom action to export PDF
+    def export_as_pdf(self, request, queryset):
+        response = HttpResponse(content_type="application/pdf")
+        response['Content-Disposition'] = 'attachment; filename="maintenance_payments.pdf"'
+
+        p = canvas.Canvas(response, pagesize=A4)
+        width, height = A4
+
+        # ✅ Title
+        p.setFont("Helvetica-Bold", 14)
+        p.drawString(260, height - 40, "Shubh Villa")
+        p.drawString(200, height - 60, "Maintenance Payments Report")
+
+        # Table Data
+        data = [["Resident", "Month", "Year", "Month Amount", "Month Due","Total Due", "Status", "Payment Date"]]
+        queryset = queryset.order_by("resident__villa_number")
+        for obj in queryset:
+            
+            total_due = (
+                MaintenancePayment.objects.filter(resident=obj.resident)
+                .aggregate(total_due=models.Sum("due"))["total_due"]
+                or 0
+            )
+            
+            row = [
+                str(obj.resident),
+                obj.month,
+                str(obj.year),
+                f"Rs {obj.amount}",
+                f"Rs {obj.due}",
+                str(total_due),
+                obj.status,
+                obj.payment_date.strftime("%d-%m-%Y"),
+            ]
+            data.append(row)
+
+        # Add summary row
+        total_amount = sum([obj.amount for obj in queryset])
+        total_due = sum([obj.due or Decimal(0) for obj in queryset])
+        data.append(["", "", f"Total Rs {total_amount}","", "", f"Total Due Rs {total_due}", "", ""])
+
+        # Create table
+        table = Table(data, colWidths=[90, 60, 50, 80, 80, 70, 80])
+        style = TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ])
+
+        # Highlight rows with dues
+        for i, obj in enumerate(queryset, start=1):  # +1 because header row
+            total_due = (
+                MaintenancePayment.objects.filter(resident=obj.resident)
+                .aggregate(total_due=models.Sum("due"))["total_due"]
+                or 0
+            )
+            if total_due and total_due > envVar.base_maintenance:
+                style.add('TEXTCOLOR', (0, i), (-1, i), colors.red) 
+            elif obj.due and obj.due > 0:
+                style.add('BACKGROUND', (0, i), (-1, i), colors.yellow)
+                style.add('TEXTCOLOR', (0, i), (-1, i), colors.black)               
+            else:
+                style.add('BACKGROUND', (0, i), (-1, i), colors.lightgreen)
+                style.add('TEXTCOLOR', (0, i), (-1, i), colors.black)
+
+        # Highlight summary row
+        style.add('BACKGROUND', (0, len(data)-1), (-1, len(data)-1), colors.lightblue)
+        style.add('TEXTCOLOR', (0, len(data)-1), (-1, len(data)-1), colors.black)
+
+        table.setStyle(style)
+
+        # Draw table
+        table.wrapOn(p, width, height)
+        table_height = 400
+        table.drawOn(p, 30, height - 100 - (20 * len(data)))
+
+        p.save()
+        return response
+
+    export_as_pdf.short_description = "Export selected payments to PDF"
     
     
 class LedgerEntryAdminForm(forms.ModelForm):
