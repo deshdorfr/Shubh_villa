@@ -83,36 +83,41 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
         p.drawString(260, height - 40, "Shubh Villa")
         p.drawString(200, height - 60, "Maintenance Payments Report")
 
-        # Table Data
-        data = [["Resident", "Month", "Year", "Month Amount", "Month Due","Total Due", "Status", "Payment Date"]]
+        # ✅ Table header (fixed typo)
+        data = [["Resident", "Villa No", "Month", "Year", "Month Amount", "Month Due", "Total Due", "Payment Date"]]
+
+        # ✅ Sorted queryset by villa_number
         queryset = queryset.order_by("resident__villa_number")
+
         for obj in queryset:
-            
             total_due = (
                 MaintenancePayment.objects.filter(resident=obj.resident)
                 .aggregate(total_due=models.Sum("due"))["total_due"]
                 or 0
             )
-            
+            user = obj.resident.user
+            full_name = f"{user.first_name} {user.last_name}".strip() or user.username
+
             row = [
-                str(obj.resident),
+                full_name,
+                f"{obj.resident.villa_number}",
                 obj.month,
                 str(obj.year),
                 f"Rs {obj.amount}",
                 f"Rs {obj.due}",
-                str(total_due),
-                obj.status,
+                f"Rs {total_due}",
+                # obj.status,
                 obj.payment_date.strftime("%d-%m-%Y"),
             ]
             data.append(row)
 
-        # Add summary row
+        # ✅ Summary row
         total_amount = sum([obj.amount for obj in queryset])
         total_due = sum([obj.due or Decimal(0) for obj in queryset])
-        data.append(["", "", f"Total Rs {total_amount}","", "", f"Total Due Rs {total_due}", "", ""])
+        data.append(["", "", "", f"Total Rs {total_amount}", "", f"Total Due Rs {total_due}", "", ""])
 
-        # Create table
-        table = Table(data, colWidths=[90, 60, 50, 80, 80, 70, 80])
+        # ✅ 9 columns
+        table = Table(data, colWidths=[100, 40, 60, 50, 80, 80, 80, 70])
         style = TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
@@ -121,7 +126,7 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ])
 
-        # Highlight rows with dues
+        # ✅ Row highlighting
         for i, obj in enumerate(queryset, start=1):  # +1 because header row
             total_due = (
                 MaintenancePayment.objects.filter(resident=obj.resident)
@@ -129,24 +134,23 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
                 or 0
             )
             if total_due and total_due > envVar.base_maintenance:
-                style.add('TEXTCOLOR', (0, i), (-1, i), colors.red) 
+                style.add('TEXTCOLOR', (0, i), (-1, i), colors.red)
             elif obj.due and obj.due > 0:
                 style.add('BACKGROUND', (0, i), (-1, i), colors.yellow)
-                style.add('TEXTCOLOR', (0, i), (-1, i), colors.black)               
+                style.add('TEXTCOLOR', (0, i), (-1, i), colors.black)
             else:
                 style.add('BACKGROUND', (0, i), (-1, i), colors.lightgreen)
                 style.add('TEXTCOLOR', (0, i), (-1, i), colors.black)
 
-        # Highlight summary row
+        # ✅ Highlight summary row
         style.add('BACKGROUND', (0, len(data)-1), (-1, len(data)-1), colors.lightblue)
         style.add('TEXTCOLOR', (0, len(data)-1), (-1, len(data)-1), colors.black)
 
         table.setStyle(style)
 
-        # Draw table
+        # ✅ Dynamic table height placement
         table.wrapOn(p, width, height)
-        table_height = 400
-        table.drawOn(p, 30, height - 100 - (20 * len(data)))
+        table.drawOn(p, 30, height - 120 - (20 * len(data)))
 
         p.save()
         return response
