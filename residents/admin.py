@@ -112,7 +112,7 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
         data = [["Resident", "Villa No", "Month", "Year", "Month Amount", "Month Due", "Total Due", "Payment Date"]]
 
         # ✅ Sorted queryset by villa_number
-        queryset = queryset.order_by("resident__villa_number")
+        # queryset = queryset.order_by("resident__villa_number")
 
         for obj in queryset:
             total_due = (
