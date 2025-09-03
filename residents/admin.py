@@ -14,6 +14,8 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle
+from maintenance import envVar
+
 
 admin.site.site_header = "Shubh Villa Society Administration"
 admin.site.site_title = "Shubh Villa Admin Portal"
@@ -156,7 +158,9 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
                 .aggregate(total_due=models.Sum("due"))["total_due"]
                 or 0
             )
-            if total_due and total_due > 0:
+            if total_due and total_due > envVar.base_maintenance:
+                style.add('TEXTCOLOR', (0, i), (-1, i), colors.red)
+            elif total_due and total_due >= envVar.base_maintenance and obj.due == 0:
                 style.add('TEXTCOLOR', (0, i), (-1, i), colors.red)
             elif obj.due and obj.due > 0:
                 style.add('BACKGROUND', (0, i), (-1, i), colors.yellow)
