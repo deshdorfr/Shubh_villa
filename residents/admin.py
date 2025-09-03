@@ -82,6 +82,31 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
         p.setFont("Helvetica-Bold", 14)
         p.drawString(260, height - 40, "Shubh Villa")
         p.drawString(200, height - 60, "Maintenance Payments Report")
+        
+        # ✅ Legend Section (before drawing the table)
+        legend_y = height - 100
+
+        # Green = All Paid
+        p.setFillColor(colors.lightgreen)
+        p.rect(30, legend_y, 15, 15, fill=1, stroke=1)
+        p.setFillColor(colors.black)
+        p.drawString(50, legend_y + 3, "All Paid")
+
+        # Yellow = Current Month Pending
+        p.setFillColor(colors.yellow)
+        p.rect(150, legend_y, 15, 15, fill=1, stroke=1)
+        p.setFillColor(colors.black)
+        p.drawString(170, legend_y + 3, "Current Month Pending")
+
+        # Red = Previous Pending
+        p.setFillColor(colors.red)
+        p.rect(380, legend_y, 15, 15, fill=1, stroke=1)
+        p.setFillColor(colors.black)
+        p.drawString(400, legend_y + 3, "Previous Pending")
+
+        # Reset fill color for table
+        p.setFillColor(colors.black)
+
 
         # ✅ Table header (fixed typo)
         data = [["Resident", "Villa No", "Month", "Year", "Month Amount", "Month Due", "Total Due", "Payment Date"]]
