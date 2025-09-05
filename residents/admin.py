@@ -109,11 +109,11 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
 
 
         # ✅ Table header (fixed typo)
-        data = [["Resident", "Villa No", "Month", "Year", "Month Amount", "Month Due", "Total Due", "Payment Date"]]
+        data = [["S No.","Resident", "Villa No", "Month", "Year", "Month Amount", "Month Due", "Total Due", "Payment Date"]]
 
         # ✅ Sorted queryset by villa_number
         # queryset = queryset.order_by("resident__villa_number")
-
+        s_no=0
         for obj in queryset:
             total_due = (
                 MaintenancePayment.objects.filter(resident=obj.resident)
@@ -122,8 +122,9 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
             )
             user = obj.resident.user
             full_name = f"{user.first_name} {user.last_name}".strip() or user.username
-
+            s_no+=1
             row = [
+                s_no,
                 full_name,
                 f"{obj.resident.villa_number}",
                 obj.month,
@@ -142,7 +143,7 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
         data.append(["", "", "", f"Total Rs {total_amount}", "", f"Total Due Rs {total_due}", "", ""])
 
         # ✅ 9 columns
-        table = Table(data, colWidths=[100, 40, 60, 50, 80, 80, 80, 70])
+        table = Table(data, colWidths=[20,100, 40, 60, 40, 70, 60, 60, 70])
         style = TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
