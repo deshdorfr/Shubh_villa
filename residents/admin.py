@@ -30,11 +30,11 @@ class ResidentProfileAdmin(admin.ModelAdmin):
 
 @admin.register(MaintenancePayment)
 class MaintenancePaymentAdmin(admin.ModelAdmin):
-    list_display = ('resident', 'month', 'year', 'amount', 'due', 'payment_date', 'status')
+    list_display = ('resident__user__username', 'resident__villa_number' ,'month', 'year', 'amount', 'due', 'payment_date', 'status')
     list_filter = ('status', 'month', 'year')
     search_fields = ('resident__user__username', 'resident__villa_number')
     readonly_fields = ['due', 'year']
-    sortable_by = ['due']
+    sortable_by = ['due', 'resident__villa_number']
     actions = ['export_as_pdf']  # <-- ✅ added action
 
     change_list_template = "admin/maintenancepayment_changelist.html"

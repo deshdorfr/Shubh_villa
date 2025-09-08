@@ -13,7 +13,7 @@ from datetime import date
 
 class ResidentProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    villa_number = models.CharField(max_length=10)
+    villa_number = models.IntegerField(unique=True)
     phone = models.CharField(max_length=15)
     registration_date = models.DateField(default=timezone.now)
 
