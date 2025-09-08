@@ -30,7 +30,7 @@ class ResidentProfileAdmin(admin.ModelAdmin):
 
 @admin.register(MaintenancePayment)
 class MaintenancePaymentAdmin(admin.ModelAdmin):
-    list_display = ('resident__user__username', 'resident__villa_number' ,'month', 'year', 'amount', 'due', 'payment_date', 'status')
+    list_display = ('get_resident_name', 'resident__villa_number' ,'month', 'year', 'amount', 'due', 'payment_date', 'status')
     list_filter = ('status', 'month', 'year')
     search_fields = ('resident__user__username', 'resident__villa_number')
     readonly_fields = ['due', 'year']
@@ -38,6 +38,12 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
     actions = ['export_as_pdf']  # <-- ✅ added action
 
     change_list_template = "admin/maintenancepayment_changelist.html"
+    
+    def get_resident_name(self, obj):
+        user = obj.resident.user
+        full_name = f"{user.first_name} {user.last_name}".strip()
+        return full_name if full_name else user.username
+    get_resident_name.short_description = "Resident Name"
 
     def changelist_view(self, request, extra_context=None):
         today = datetime.date.today()
