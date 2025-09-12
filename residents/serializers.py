@@ -132,7 +132,7 @@ class MaintenancePaymentSerializer(serializers.ModelSerializer):
 
 
 class LedgerEntrySerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source="resident.user.username", read_only=True)
+    full_name = serializers.SerializerMethodField()
     villa_number = serializers.CharField(source="resident.villa_number", read_only=True)
 
     class Meta:
@@ -149,8 +149,14 @@ class LedgerEntrySerializer(serializers.ModelSerializer):
             "date",
             "created_at",
             "updated_at",
-            "username",
+            "full_name",
             "villa_number",
         ]
+
+    def get_full_name(self, obj):
+        user = obj.resident.user
+        if user.first_name or user.last_name:
+            return f"{user.first_name} {user.last_name}".strip()
+        return user.username
 
 
