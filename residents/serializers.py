@@ -154,9 +154,12 @@ class LedgerEntrySerializer(serializers.ModelSerializer):
         ]
 
     def get_full_name(self, obj):
-        user = obj.resident.user
-        if user.first_name or user.last_name:
-            return f"{user.first_name} {user.last_name}".strip()
-        return user.username
+        try:
+            user = obj.resident.user
+            if user.first_name or user.last_name:
+                return f"{user.first_name} {user.last_name}".strip()
+            return user.username
+        except:
+            return "NA"
 
 
