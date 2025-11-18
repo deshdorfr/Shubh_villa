@@ -5,9 +5,14 @@ from .models import MaintenancePayment, LedgerEntry
 from django.db import models
 
 
+
+class ChatRequestSerializer(serializers.Serializer):
+    message = serializers.CharField()
+
+
 class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = User    
         fields = ['id', 'username', 'email', 'first_name', 'last_name']
 
 class UserSerializer(serializers.ModelSerializer):

@@ -10,6 +10,7 @@ from .views import (LoginView,
                     MaintenancePaymentListView,
                     LedgerEntryListView
                     )
+from .delete_view import ChatGPTView
 
 urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
@@ -22,4 +23,5 @@ urlpatterns = [
     path('residents/', ResidentProfileListAPIView.as_view(), name='resident-list'),
     path('maintenance-payments/', MaintenancePaymentListView.as_view(), name='maintenance-payment-list'),
     path("ledger-entries/", LedgerEntryListView.as_view(), name="ledger-entry-list"),
+    path("test_api/", ChatGPTView.as_view(), name="chat")
 ]

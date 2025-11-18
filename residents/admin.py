@@ -38,7 +38,7 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
     actions = ['export_as_pdf']  # <-- ✅ added action
 
     change_list_template = "admin/maintenancepayment_changelist.html"
-    
+
     def get_resident_name(self, obj):
         user = obj.resident.user
         full_name = f"{user.first_name} {user.last_name}".strip()
@@ -51,7 +51,7 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
         current_month = today.strftime("%B")  # "August", matches MONTH_CHOICES
 
         # Apply default only if no filters at all
-        if not request.GET:  
+        if not request.GET:
             q = request.GET.copy()
             q["year__exact"] = str(current_year)
             q["month__exact"] = current_month
@@ -79,7 +79,7 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
     # ✅ Custom action to export PDF
     def export_as_pdf(self, request, queryset):
         response = HttpResponse(content_type="application/pdf")
-        response['Content-Disposition'] = 'attachment; filename="maintenance_payments.pdf"'
+        response['Content-Disposition'] = f'attachment; filename="maintenance_payments_{datetime.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.pdf"'
 
         p = canvas.Canvas(response, pagesize=A4)
         width, height = A4
@@ -88,7 +88,7 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
         p.setFont("Helvetica-Bold", 14)
         p.drawString(260, height - 40, "Shubh Villa")
         p.drawString(200, height - 60, "Maintenance Payments Report")
-        
+
         # ✅ Legend Section (before drawing the table)
         legend_y = height - 100
 
@@ -109,6 +109,8 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
         p.rect(380, legend_y, 15, 15, fill=1, stroke=1)
         p.setFillColor(colors.black)
         p.drawString(400, legend_y + 3, "Previous Pending")
+
+        p.drawString(30, height - 130, f"Date: {datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S")}")
 
         # Reset fill color for table
         p.setFillColor(colors.black)
@@ -190,8 +192,8 @@ class MaintenancePaymentAdmin(admin.ModelAdmin):
         return response
 
     export_as_pdf.short_description = "Export selected payments to PDF"
-    
-    
+
+
 class LedgerEntryAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
